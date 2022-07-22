@@ -154,6 +154,7 @@ somnambulate <- function(fsom.somnambulated.rds.path,markers = NULL){
   ##choose file
   f.path <- file.choose()
 
+  message("loading chosen fsom.rds...")
   fsom.somnambulated <- readRDS(f.path)
 
   # ##load fsom.somnambulated.rds
@@ -335,6 +336,7 @@ somnambulate <- function(fsom.somnambulated.rds.path,markers = NULL){
   }
   # Run app ----
   shiny::shinyApp(ui, server)
+  return(fsom.somnambulated)
 }
 ##
 ##
