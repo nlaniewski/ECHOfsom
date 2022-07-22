@@ -1,0 +1,29 @@
+Package: ECHOfsom
+Type: Package
+Title: ECHO Mass Cytometry Utilities/Workflow; FlowSOM-related Utilities/Workflow
+Version: 0.1.0
+Author: Nathan Laniewski
+Maintainer: Nathan Laniewski <nathan_laniewski@urmc.rochester.edu>
+Description: Contains ECHO-specific functions for FlowSOM clustering related workflows.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Imports:
+    ConsensusClusterPlus,
+    EmbedSOM,
+    ECHOfcs,
+    flowCore,
+    ggplot2,
+    ggpubr,
+    pheatmap,
+    plotly,
+    plyr,
+    RColorBrewer,
+    reshape2,
+    scales,
+    shiny,
+    stats,
+    stringr,
+    utils,
+    viridis
+RoxygenNote: 7.1.2
