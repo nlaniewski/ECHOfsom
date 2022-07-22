@@ -336,7 +336,6 @@ somnambulate <- function(fsom.somnambulated.rds.path,markers = NULL){
   }
   # Run app ----
   shiny::shinyApp(ui, server)
-  return(fsom.somnambulated)
 }
 ##
 ##
