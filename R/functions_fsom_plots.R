@@ -151,17 +151,22 @@ somnambulate <- function(fsom.somnambulated.rds.path,markers = NULL){
       viridis::scale_fill_viridis(option = "plasma", limits = c(0, 50), oob = scales::squish)
   }
 
-  ##load fsom.somnambulated.rds
-  if(!exists('fsom.somnambulated')){
-    message("loading fsom.somnambulated.rds")
-    fsom.somnambulated <<- readRDS(fsom.somnambulated.rds.path)
-    ##check class
-    if(class(fsom.somnambulated)!="FlowSOM Somnambulated"){
-      stop("Has this fsom been somnambulated ('fsom.somnambulation()')?")
-    }
-  }else{
-    message("fsom.somnambulated is already defined (in environment)")
-  }
+  ##choose file
+  f.path <- file.choose()
+
+  fsom.somnambulated <- readRDS(f.path)
+
+  # ##load fsom.somnambulated.rds
+  # if(!exists('fsom.somnambulated')){
+  #   message("loading fsom.somnambulated.rds")
+  #   fsom.somnambulated <<- readRDS(fsom.somnambulated.rds.path)
+  #   ##check class
+  #   if(class(fsom.somnambulated)!="FlowSOM Somnambulated"){
+  #     stop("Has this fsom been somnambulated ('fsom.somnambulation()')?")
+  #   }
+  # }else{
+  #   message("fsom.somnambulated is already defined (in environment)")
+  # }
 
   ##
   c.names <- colnames(fsom.somnambulated$dat.all)
