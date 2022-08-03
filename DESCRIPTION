@@ -26,4 +26,5 @@ Imports:
     stringr,
     utils,
     viridis
+biocViews:
 RoxygenNote: 7.1.2
