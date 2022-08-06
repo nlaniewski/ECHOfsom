@@ -13,6 +13,8 @@ somnambulate(
 \arguments{
 \item{fsom.somnambulated.rds.path}{a file.path to exisiting fsom; returned from 'fsom.somnambulation()'}
 
+\item{fsom.somnambulated}{object returned from 'fsom.somnambulation.mod()'}
+
 \item{markers}{character vector of length 2; marker pairs for initial plots}
 }
 \value{

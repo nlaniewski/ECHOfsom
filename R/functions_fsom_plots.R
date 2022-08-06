@@ -138,6 +138,7 @@ echo.boxplot.single <- function(echo.melted.mdatframe,variable.value,x.var = 'vi
 #' Interactive Shiny; various plots of FlowSOM results
 #'
 #' @param fsom.somnambulated.rds.path a file.path to exisiting fsom; returned from 'fsom.somnambulation()'
+#' @param fsom.somnambulated object returned from 'fsom.somnambulation.mod()'
 #' @param markers character vector of length 2; marker pairs for initial plots
 #'
 #' @return launches an interactive window ('shiny::shinyApp()')
@@ -166,7 +167,7 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
     message("Using environment object...")
   }
   ##check class
-  if(class(fsom.somnambulated)!="FlowSOM Somnambulated"){
+  if(inherits(fsom.somnambulated,"FlowSOM Somnambulated")){
     stop("Need the return object from 'fsom.somnambulation()'")
   }
 
