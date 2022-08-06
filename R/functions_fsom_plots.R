@@ -32,12 +32,12 @@ pheat <- function(dat.mat, color.type = c("divergent","sequential"),break.vec = 
 #' Cluster medians heatmap: plotly heatmap with hclust dendrogram ordering
 #'
 #' @param cluster.medians cluster median values; returned from 'generate.cluster.medians()'
-#' @param break.vec number vector of length 2; min and max of color scale
+#' @param break.vec a numeric vector for generating color breaks
 #'
 #' @return Plotly heatmap
 #' @export
 #'
-plheat <- function(cluster.medians,break.vec = c(0, 1.5)){
+plheat <- function(cluster.medians,break.vec = seq(0, 1, by = 0.05)){
   #prepare cluster data
   dat <- as.matrix(cluster.medians[,!colnames(cluster.medians) %in% 'cluster'])
   c.order <- rev(unlist(stats::as.dendrogram(stats::hclust(stats::dist(dat)))))
@@ -154,9 +154,9 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
   }
   ##choose file
   if(is.null(fsom.somnambulated.rds.path)&is.null(fsom.somnambulated)){
-  f.path <- file.choose()
-  message("loading chosen fsom.rds...")
-  fsom.somnambulated <- readRDS(f.path)
+    f.path <- file.choose()
+    message("loading chosen fsom.rds...")
+    fsom.somnambulated <- readRDS(f.path)
   }
   ##provide path
   if(!is.null(fsom.somnambulated.rds.path)&is.null(fsom.somnambulated)){
@@ -167,7 +167,7 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
     message("Using environment object...")
   }
   ##check class
-  if(inherits(fsom.somnambulated,"FlowSOM Somnambulated")){
+  if(!inherits(fsom.somnambulated,"FlowSOM Somnambulated")){
     stop("Need the return object from 'fsom.somnambulation()'")
   }
 
@@ -216,7 +216,7 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
                                              choices = ""),
                           shiny::numericInput(inputId = "rowsamp",
                                               label = "# of 'All Events' to display:",
-                                              value = 2E5,
+                                              value = 1E5,
                                               min = 1E5,
                                               max = dat.all.max.rows,
                                               step = 1E5),
@@ -228,13 +228,15 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
                         shiny::mainPanel(
                           shiny::fluidRow(
                             shiny::plotOutput("plots_2_1")
-                   ),
-                   shiny::fluidRow(
-                     shiny::column(5, shiny::plotOutput("plots_3")),
-                     #column(6, plotOutput("plots_heat"))
-                     shiny::column(7, plotly::plotlyOutput("plotly_heat"))
-                   ),
-                   width = 10
+                          ),
+                          shiny::fluidRow(
+                            if(!is.null(fsom.somnambulated$mdats)){
+                              shiny::column(5, shiny::plotOutput("plots_3"))
+                            },
+                            #column(6, plotOutput("plots_heat"))
+                            shiny::column(7, plotly::plotlyOutput("plotly_heat"))
+                          ),
+                          width = 10
                         )
                       )
       ),
@@ -254,8 +256,8 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       x <- input$nc
       choices = seq(fsom.somnambulated$nc.vals[x])
       shiny::updateSelectInput(inputId = 'nc.val',
-                        label = paste(stringr::str_to_title(x),"#:"),
-                        choices = choices)
+                               label = paste(stringr::str_to_title(x),"#:"),
+                               choices = choices)
     })
     ##
     row.index <- shiny::reactive({
@@ -265,8 +267,8 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
     ##
     plot1 <- shiny::reactive({
       gg.func.bivariate(data.frame(fsom.somnambulated$dat.all[row.index(),]),x = input$marker1,y = input$marker2) +
-        ggplot2::xlim(c(-0.001,fsom.somnambulated$xy.upper.lims[[input$marker1]])) +
-        ggplot2::ylim(c(-0.001,fsom.somnambulated$xy.upper.lims[[input$marker2]])) +
+        ggplot2::xlim(fsom.somnambulated$xy.lims[,input$marker1]) +
+        ggplot2::ylim(fsom.somnambulated$xy.lims[,input$marker2]) +
         ggplot2::labs(title = "All Events",
                       subtitle = paste(length(row.index()), "of", dat.all.max.rows, "displayed"))
     })
@@ -282,20 +284,22 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
         p <- gg.func.bivariate(data.frame(fsom.somnambulated$cluster.mats[[input$nc.val]]),x = input$marker1,y = input$marker2)
       }
       p <- p +
-        ggplot2::xlim(c(-0.001,fsom.somnambulated$xy.upper.lims[[input$marker1]])) +
-        ggplot2::ylim(c(-0.001,fsom.somnambulated$xy.upper.lims[[input$marker2]])) +
+        ggplot2::xlim(fsom.somnambulated$xy.lims[,input$marker1]) +
+        ggplot2::ylim(fsom.somnambulated$xy.lims[,input$marker2]) +
         ggplot2::labs(title = paste(paste0(stringr::str_to_title(input$nc),":"),input$nc.val),
                       subtitle = title.sub) +
         ggplot2::guides(fill = "none")
       return(p)
     })
-    plot3 <- shiny::reactive({
-      shiny::validate(shiny::need(input$nc.val,"populating cluster/node values based on 'updateSelectInput'"))
-      i <- input$nc
-      echo.boxplot.single(echo.melted.mdatframe = fsom.somnambulated$mdats[[i]],
-                          variable.value = input$nc.val,
-                          x.var = input$mdat1)
-    })
+    if(!is.null(fsom.somnambulated$mdats)){
+      plot3 <- shiny::reactive({
+        shiny::validate(shiny::need(input$nc.val,"populating cluster/node values based on 'updateSelectInput'"))
+        i <- input$nc
+        echo.boxplot.single(echo.melted.mdatframe = fsom.somnambulated$mdats[[i]],
+                            variable.value = input$nc.val,
+                            x.var = input$mdat1)
+      })
+    }
     # boxplots.faceted <- reactive({
     #   boxplot.list[[input$mdat1]]
     # })
