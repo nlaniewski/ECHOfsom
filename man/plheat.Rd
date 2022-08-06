@@ -4,10 +4,12 @@
 \alias{plheat}
 \title{Cluster medians heatmap: plotly heatmap with hclust dendrogram ordering}
 \usage{
-plheat(cluster.medians)
+plheat(cluster.medians, break.vec = c(0, 1.5))
 }
 \arguments{
 \item{cluster.medians}{cluster median values; returned from 'generate.cluster.medians()'}
+
+\item{break.vec}{number vector of length 2; min and max of color scale}
 }
 \value{
 Plotly heatmap

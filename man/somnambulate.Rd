@@ -4,7 +4,11 @@
 \alias{somnambulate}
 \title{Interactive Shiny; various plots of FlowSOM results}
 \usage{
-somnambulate(fsom.somnambulated.rds.path, markers = NULL)
+somnambulate(
+  fsom.somnambulated.rds.path = NULL,
+  fsom.somnambulated = NULL,
+  markers = NULL
+)
 }
 \arguments{
 \item{fsom.somnambulated.rds.path}{a file.path to exisiting fsom; returned from 'fsom.somnambulation()'}

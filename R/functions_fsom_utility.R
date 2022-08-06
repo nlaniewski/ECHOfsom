@@ -251,6 +251,124 @@ fsom.somnambulation <- function(fsom.rds.path){
   return(fsom.somnambulate)
 }
 
+fsom.somnambulation.mod <- function(fsom.rds.path,c.names=NULL){
+  ##load fsom.rds
+  if(!exists('fsom')){
+    message(paste("loading fsom.rds:",fsom.rds.path))
+    fsom <- readRDS(fsom.rds.path)
+  }else{
+    message("fsom is already defined (in environment)")
+  }
+  ##total.events
+  if(!is.null(fsom$mdat)){
+    if(length(fsom$map$mapping[,1])==sum(fsom$mdat$total.events)){
+      total.events <- sum(fsom$mdat$total.events)
+    }else{
+      total.events <- sum(fsom$mdat$total.events)
+      message("length(fsom$map$mapping[,1]) DOES NOT EQUAL sum(fsom$mdat$total.events)")
+    }
+  }else{
+    total.events <- length(fsom$map$mapping[,1])
+  }
+  ##generate mdats
+  if(!is.null(fsom$mdat)){
+    mdats = list(cluster = echo.melt(fsom,counts = 'cluster'),
+                 node = echo.melt(fsom,counts = 'node')
+    )
+  }else{
+    mdats <- NULL
+  }
+
+  if(is.null(c.names)){
+    c.names <- colnames(fsom$data)
+    c.names <- c(c.names, "cluster", "node")
+  }else if(c.names=="ECHO"){
+    ##prepare column names
+    message(paste("Column name style/ordering:",c.names))
+    c.names <- echo.fsom.colnames(c.names = colnames(fsom$data))
+  }
+
+  ##prepare data.frame for plotting all events; sub-sample if too many rows to speed up plotting
+  message("dat.all")
+  if(nrow(fsom$data)>1E6){
+    message("All events > 1E6; sub-sampling...")
+    set.seed(20040501)
+    sample.val <- sample(1:nrow(fsom$data),1E6)
+    dat.all <- cbind(fsom$data[sample.val,],
+                     cluster = as.numeric(fsom$metaclustering[fsom$map$mapping[,1]][sample.val]),
+                     node = fsom$map$mapping[,1][sample.val])[,c.names]
+  }else{
+    dat.all <- cbind(fsom$data,
+                     cluster = as.numeric(fsom$metaclustering[fsom$map$mapping[,1]]),
+                     node = fsom$map$mapping[,1])[,c.names]
+  }
+
+  ##prepare cluster matrices
+  message("cluster.mats")
+  cluster.mats <- sapply(levels(fsom$metaclustering),function(i){
+    c.index <- which(fsom$metaclustering[fsom$map$mapping[,1]]==i)
+    if(length(c.index)>2E5){
+      set.seed(20040501)
+      sample.val <- sample(c.index,2E5)
+      dat <- cbind(fsom$data[sample.val,],cluster = as.numeric(i),node = fsom$map$mapping[,1][sample.val])[,c.names]
+    }else{
+      dat <- cbind(fsom$data[c.index,],cluster = as.numeric(i),node = fsom$map$mapping[,1][c.index])[,c.names]
+    }
+    return(dat)
+  },simplify = F)
+
+  ##pre-calculate per-column x,y limits
+  ##decimal value ceiling for setting x,y upper limits and lower limits
+  ##can probably simplify this chunk of code but works fine...
+  message("xy.upper.lim")
+  col.maxes.all <- apply(dat.all,2,max)
+  col.mins.all <- apply(dat.all,2,min)
+  col.maxes.mats <- apply(sapply(cluster.mats,function(i) apply(i,2,max)),1,max)
+  col.mins.mats <- apply(sapply(cluster.mats,function(i) apply(i,2,min)),1,min)
+  col.maxes <- apply(rbind(col.maxes.all,col.maxes.mats),2,max)
+  col.mins <- apply(rbind(col.mins.all,col.mins.mats),2,min)
+  #
+  ceiling_dec <- function(x, level=1){round(x + 5*10^(-level-1), level)}
+  #
+  xy.upper.lim <- c(sapply(col.maxes[!names(col.maxes) %in% c('cluster','node')],ceiling_dec)+0.05,
+                    col.maxes[c('cluster','node')]+1
+  )*1
+  xy.lower.lim <- c(sapply(abs(col.mins[!names(col.mins) %in% c('cluster','node')]),ceiling_dec)+0.05,
+                    col.mins[c('cluster','node')]-1
+  )*-1
+  xy.lims <- rbind(xy.lower.lim,xy.upper.lim)
+
+  message("making list")
+  gc()
+  fsom.somnambulated <- list(total.events = total.events,
+                             dat.all = dat.all,
+                             cluster.mats = cluster.mats,
+                             xy.lims = xy.lims,
+                             mdats = mdats,
+                             nc.vals = col.maxes[c('cluster','node')],
+                             heatmaps = list(p.heat = pheat(dat.mat = fsom$cluster.medians,color.type = 'sequential',border_color = NA,silent=T),
+                                             pl.heat = plheat(fsom$cluster.medians)
+                             ),
+                             metaclustering = fsom$metaclustering,
+                             cluster.titles = sapply(levels(fsom$metaclustering),function(i){
+                               nodes.in.cluster <- which(fsom$metaclustering==as.numeric(i))
+                               if(length(nodes.in.cluster)>10){
+                                 title.sub <- paste0(paste0("(",paste(nodes.in.cluster[1:10],collapse = " "),"...)"),"(",length(nodes.in.cluster)," total",")")
+                               }else{
+                                 title.sub <- paste0("(",paste(nodes.in.cluster,collapse = " "),")")
+                               }
+                             }),
+                             node.titles = stats::setNames(
+                               sapply(as.numeric(fsom$metaclustering),function(i){
+                                 title.sub <- paste0("(",i,")")
+                               }),
+                               nm = seq(length(fsom$metaclustering))
+                             )
+  )
+  class(fsom.somnambulated) <- "FlowSOM Somnambulated"
+
+  return(fsom.somnambulated)
+}
 
 #' Map samples to existing FlowSOM codes/clusters
 #'

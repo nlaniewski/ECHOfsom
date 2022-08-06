@@ -32,11 +32,12 @@ pheat <- function(dat.mat, color.type = c("divergent","sequential"),break.vec = 
 #' Cluster medians heatmap: plotly heatmap with hclust dendrogram ordering
 #'
 #' @param cluster.medians cluster median values; returned from 'generate.cluster.medians()'
+#' @param break.vec number vector of length 2; min and max of color scale
 #'
 #' @return Plotly heatmap
 #' @export
 #'
-plheat <- function(cluster.medians){
+plheat <- function(cluster.medians,break.vec = c(0, 1.5)){
   #prepare cluster data
   dat <- as.matrix(cluster.medians[,!colnames(cluster.medians) %in% 'cluster'])
   c.order <- rev(unlist(stats::as.dendrogram(stats::hclust(stats::dist(dat)))))
@@ -44,15 +45,15 @@ plheat <- function(cluster.medians){
   dat <- dat[c.order,m.order]
   rownames(dat) <- c.order
   #plotly heatmap
-  break.vec <- seq(0, 1, by = 0.05)
   plotly.heatmap <- plotly::plot_ly(x=colnames(dat),
                                     y=rownames(dat),
                                     z=dat,
+                                    zauto = FALSE,
+                                    zmin = min(break.vec),
+                                    zmax = max(break.vec),
                                     type = "heatmap",
                                     colors = grDevices::colorRampPalette(RColorBrewer::brewer.pal(n = 9, name ="Greens"))(length(break.vec)),
                                     source = 'cluster.heatmap'
-                                    #zauto = F,
-                                    #zmax = 1
   )
   plotly.heatmap <- plotly::layout(plotly.heatmap,
                                    yaxis = list(tickfont = list(size = 10),
@@ -142,7 +143,7 @@ echo.boxplot.single <- function(echo.melted.mdatframe,variable.value,x.var = 'vi
 #' @return launches an interactive window ('shiny::shinyApp()')
 #' @export
 #'
-somnambulate <- function(fsom.somnambulated.rds.path,markers = NULL){
+somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NULL,markers = NULL){
 
   ##ggplot function
   gg.func.bivariate <- function(dat,...){
@@ -150,24 +151,24 @@ somnambulate <- function(fsom.somnambulated.rds.path,markers = NULL){
       ggplot2::geom_hex(bins = 200) +
       viridis::scale_fill_viridis(option = "plasma", limits = c(0, 50), oob = scales::squish)
   }
-
   ##choose file
+  if(is.null(fsom.somnambulated.rds.path)&is.null(fsom.somnambulated)){
   f.path <- file.choose()
-
   message("loading chosen fsom.rds...")
   fsom.somnambulated <- readRDS(f.path)
-
-  # ##load fsom.somnambulated.rds
-  # if(!exists('fsom.somnambulated')){
-  #   message("loading fsom.somnambulated.rds")
-  #   fsom.somnambulated <<- readRDS(fsom.somnambulated.rds.path)
-  #   ##check class
-  #   if(class(fsom.somnambulated)!="FlowSOM Somnambulated"){
-  #     stop("Has this fsom been somnambulated ('fsom.somnambulation()')?")
-  #   }
-  # }else{
-  #   message("fsom.somnambulated is already defined (in environment)")
-  # }
+  }
+  ##provide path
+  if(!is.null(fsom.somnambulated.rds.path)&is.null(fsom.somnambulated)){
+    fsom.somnambulated <- readRDS(fsom.somnambulated.rds.path)
+  }
+  ##provide environment object
+  if(is.null(fsom.somnambulated.rds.path)&!is.null(fsom.somnambulated)){
+    message("Using environment object...")
+  }
+  ##check class
+  if(class(fsom.somnambulated)!="FlowSOM Somnambulated"){
+    stop("Need the return object from 'fsom.somnambulation()'")
+  }
 
   ##
   c.names <- colnames(fsom.somnambulated$dat.all)
