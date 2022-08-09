@@ -191,6 +191,7 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
                       windowTitle = "SOMnambulate"),
 
     shiny::tabsetPanel(
+
       shiny::tabPanel("Cyto Plots",
                       shiny::sidebarLayout(
                         shiny::sidebarPanel(
@@ -244,6 +245,12 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       shiny::tabPanel("Boxplots",
                       shiny::fillPage(
                         shiny::plotOutput("boxplots_faceted", height = "80vh")
+                      )
+      ),
+
+      shiny::tabPanel("Heatmap - Full",
+                      shiny::fillPage(
+                        shiny::plotOutput("pheat", height = "80vh")
                       )
       )
     )
@@ -312,6 +319,8 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
     })
 
     output$plotly_heat <- plotly::renderPlotly(fsom.somnambulated$heatmaps$pl.heat)
+
+    outout$pheat <- shiny::renderPlot({fsom.somnambulated$heatmaps$pheat})
 
     # output$boxplots_faceted <- renderPlot({
     #   boxplots.faceted()
