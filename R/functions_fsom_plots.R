@@ -59,6 +59,18 @@ plheat <- function(cluster.medians,break.vec = seq(0, 1, by = 0.05)){
                                    yaxis = list(tickfont = list(size = 10),
                                                 type = "category")
   )
+  plotly.heatmap <- plotly::layout(plotly.heatmap,
+                                   xaxis = list(showspikes=T,
+                                                spikedash="longdash",
+                                                spikemode="across",
+                                                spikecolor="purple",
+                                                spikethickness=1),
+                                   yaxis = list(showspike=T,
+                                                spikedash="longdash",
+                                                spikemode="across",
+                                                spikecolor="orange",
+                                                spikethickness=1)
+  )
   return(plotly.heatmap)
 }
 
