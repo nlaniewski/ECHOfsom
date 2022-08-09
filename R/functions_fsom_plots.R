@@ -320,7 +320,7 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
 
     output$plotly_heat <- plotly::renderPlotly(fsom.somnambulated$heatmaps$pl.heat)
 
-    outout$pheat <- shiny::renderPlot({fsom.somnambulated$heatmaps$pheat})
+    output$pheat <- shiny::renderPlot({fsom.somnambulated$heatmaps$pheat})
 
     # output$boxplots_faceted <- renderPlot({
     #   boxplots.faceted()
