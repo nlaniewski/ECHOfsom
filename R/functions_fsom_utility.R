@@ -124,6 +124,25 @@ generate.counts <- function(fsom=fsom){
   return(counts)
 }
 
+fsom.get.nodes.from.cluster <- function(metaclusters,cluster.number){
+  if(!is.factor(metaclusters)){
+    stop("Need factored metaclusters")
+  }
+  which(metaclusters %in% cluster.number)
+}
+
+fsom.merge.nodes <- function(metaclusters,nodes){
+  if(!is.factor(metaclusters)){
+    stop("Need factored metaclusters")
+  }
+  m <- metaclusters
+  levels(m) <- c(levels(m),length(levels(m))+1)
+  m[nodes] <- length(levels(m))
+  m <- factor(m)
+  levels(m) <- c(1:length(levels(m)))
+  return(m)
+}
+
 echo.melt <- function(fsom,counts=c('cluster','node'),drop.factor=NULL){
   if(is.null(fsom$counts)){
     stop("Need cluster/node counts...")
@@ -320,7 +339,7 @@ fsom.somnambulation.mod <- function(fsom.rds.path,c.names=NULL){
   ##pre-calculate per-column x,y limits
   ##decimal value ceiling for setting x,y upper limits and lower limits
   ##can probably simplify this chunk of code but works fine...
-  message("xy.upper.lim")
+  message("xy.limits")
   col.maxes.all <- apply(dat.all,2,max)
   col.mins.all <- apply(dat.all,2,min)
   col.maxes.mats <- apply(sapply(cluster.mats,function(i) apply(i,2,max)),1,max)
