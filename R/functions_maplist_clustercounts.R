@@ -22,6 +22,8 @@ counts.add.mdat <- function(counts.frame){
   counts.frame <- cbind(sample = gsub("_CONCATENATED|_MadMedian.fcs|_HistCut|.fcs", "",
                                       basename(rownames(counts.frame))),
                         counts.frame)
+  ##add a conditional in order to auto-generate a 'PBMC' label
+  if(!any(grepl("+",counts.frame$sample,fixed = T))){paste0(counts.frame$sample,"_PBMC")}
   ##generate meta-data from row names (file paths); merge; drop rownames (file paths)
   mdat <- ECHOfcs::mdat.frame.from.paths.echo(rownames(counts.frame))
   counts.frame <- plyr::join(counts.frame, mdat, by = "sample")
