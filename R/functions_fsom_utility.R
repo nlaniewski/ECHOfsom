@@ -10,7 +10,7 @@ fsom.initialize <- function(fcs.list){
     #extract markernames
     fcs.list.markernames <- sapply(strsplit(ECHOfcs::get.metal.markers(fcs.list),"_"),'[',2)
     #extract expression matrix from each flowFrame
-    fcs.list <- sapply(fcs.list, flowCore::exprs)
+    fcs.list <- lapply(fcs.list, flowCore::exprs)
     #initialize fsom list
     fsom <- list()
     class(fsom) <- "FlowSOM"
