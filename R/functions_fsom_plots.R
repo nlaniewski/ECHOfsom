@@ -231,6 +231,10 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
                                              label = "Meta-data variable:",
                                              choices = c('visit','condition','batch'),
                                              selected = 'visit'),
+                          shiny::selectInput(inputId = "drop.factor",
+                                             label = "Drop:",
+                                             choices = c('V4','V6','V7','Adult'),
+                                             selected = NULL),
                           shiny::selectInput(inputId = "nc",
                                              label = "Node or Cluster:",
                                              choices = c('node','cluster'),
@@ -287,6 +291,14 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       choices = seq(fsom.somnambulated$nc.vals[x])
       shiny::updateSelectInput(inputId = 'nc.val',
                                label = paste(stringr::str_to_title(x),"#:"),
+                               choices = choices)
+    })
+    ##
+    shiny::observe({
+      x <- input$mdat1
+      choices = as.character(unique(fsom.somnambulated$mdats$cluster[,x]))
+      shiny::updateSelectInput(inputId = 'drop.factor',
+                               label = "Drop:",
                                choices = choices)
     })
     ##
