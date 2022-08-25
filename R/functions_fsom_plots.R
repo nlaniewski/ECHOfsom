@@ -74,17 +74,18 @@ plheat <- function(cluster.medians,break.vec = seq(0, 1, by = 0.05)){
   return(plotly.heatmap)
 }
 
-#' Plot a single ECHO-specific boxplot
+#' Plot ECHO-specific boxplot(s)
 #'
 #' @param echo.melted.mdatframe a 'reshape2::melt()' data.frame; returned from 'echo.melt()'
 #' @param variable.value cluster/node value (#) to plot
 #' @param x.var x-axis variable to plot; factor
 #' @param drop.col.var a paired character 'c(factor,level)'; drops a factor level
+#' @param make.facets logical; TRUE results in a facet_wrap of clusters
 #'
-#' @return a ggplot boxplot
+#' @return a ggplot boxplot; a facet_wrapped ggplot boxplot
 #' @export
 #'
-echo.boxplot.single <- function(echo.melted.mdatframe,variable.value,x.var = 'visit',drop.col.var=NULL){
+echo.boxplot <- function(echo.melted.mdatframe,variable.value,x.var = 'visit',drop.col.var=NULL,make.facets=F){
   ##
   if(any(grepl('cluster',colnames(echo.melted.mdatframe)))){
     i <- 'cluster'
@@ -94,14 +95,20 @@ echo.boxplot.single <- function(echo.melted.mdatframe,variable.value,x.var = 'vi
     stop("Expect a column named 'cluster' or 'node'; is this a melted frame (returned from 'echo.melt')?")
   }
   ##
-  dat <- droplevels(echo.melted.mdatframe[echo.melted.mdatframe[,i]==variable.value,])
-  title.name = paste(paste0(stringr::str_to_title(i),":"),unique(dat[,i]))
+  if(make.facets){
+    dat <- echo.melted.mdatframe
+  }else{
+    ##
+    dat <- droplevels(echo.melted.mdatframe[echo.melted.mdatframe[,i]==variable.value,])
+    title.name = paste(paste0(stringr::str_to_title(i),":"),unique(dat[,i]))
+  }
   ##
   y.name <- as.name(grep("% of",colnames(dat),value = T))
   ##
   if(!is.null(drop.col.var)&length(drop.col.var)==2){
     dat <- droplevels(dat[dat[,drop.col.var[1]]!=drop.col.var[2],])
   }
+
 
   n.samples <- table(dat[,x.var])
   caption.name <- paste(paste0(names(n.samples),":"),n.samples, collapse = "   ")
@@ -121,9 +128,13 @@ echo.boxplot.single <- function(echo.melted.mdatframe,variable.value,x.var = 'vi
                    legend.title = ggplot2::element_text(size = 10),
                    legend.text = ggplot2::element_text(size = 10),
                    panel.border = ggplot2::element_rect(fill = NA, color = "black", size = 0.1)) +
-    #facet_wrap(~cluster, scales = "free_y") +
-    ggplot2::guides(fill = "none") +
-    ggplot2::labs(title = title.name,caption = caption.name)
+    ggplot2::guides(fill = "none")
+  ##
+  if(make.facets){
+    p <- p + facet_wrap(i,scales="free_y")
+  }else{
+    p <- p + ggplot2::labs(title = title.name,caption = caption.name)
+  }
   ##
   if(x.var=='visit'){
     colors.group.visit <- c("V4" = '#999999',
@@ -140,8 +151,8 @@ echo.boxplot.single <- function(echo.melted.mdatframe,variable.value,x.var = 'vi
   }else if(x.var=='condition'){
     p <- p +
       ggplot2::scale_color_manual(name = paste("Stimulation","Condition",sep = "\n"),
-                         labels = c("SEB", "Unstim."),
-                         values = c("red","blue")) +
+                                  labels = c("SEB", "Unstim."),
+                                  values = c("red","blue")) +
       ggplot2::scale_fill_manual(values = c("red","blue"))
   }
   return(p)
@@ -314,15 +325,21 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       plot3 <- shiny::reactive({
         shiny::validate(shiny::need(input$nc.val,"populating cluster/node values based on 'updateSelectInput'"))
         i <- input$nc
-        echo.boxplot.single(echo.melted.mdatframe = fsom.somnambulated$mdats[[i]],
-                            variable.value = input$nc.val,
-                            x.var = input$mdat1)
+        echo.boxplot(echo.melted.mdatframe = fsom.somnambulated$mdats[[i]],
+                     variable.value = input$nc.val,
+                     x.var = input$mdat1)
       })
     }
-    # boxplots.faceted <- reactive({
-    #   boxplot.list[[input$mdat1]]
-    # })
 
+    boxplots.faceted <- shiny::reactive({
+      i <- input$nc
+      if(i=='cluster'){
+        echo.boxplot(echo.melted.mdatframe = fsom.somnambulated$mdats[[i]],
+                     x.var = input$mdat1,
+                     make.facets = T)
+      }
+    })
+    ##
     output$plots_2_1 <- shiny::renderPlot({
       do.call(ggpubr::ggarrange,list(plot2(),plot1()))
     })
@@ -334,9 +351,9 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
 
     output$pheat <- shiny::renderPlot({grid::grid.draw(fsom.somnambulated$heatmaps$p.heat$gtable)})
 
-    # output$boxplots_faceted <- renderPlot({
-    #   boxplots.faceted()
-    # })
+    output$boxplots_faceted <- shiny::renderPlot({
+      boxplots.faceted()
+    })
 
     ##plotly heatmap click data
     clicks <- shiny::reactiveValues(dat = data.frame(marker1 = NA, marker2 = NA))
