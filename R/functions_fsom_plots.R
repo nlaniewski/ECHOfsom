@@ -131,7 +131,7 @@ echo.boxplot <- function(echo.melted.mdatframe,variable.value,x.var = 'visit',dr
     ggplot2::guides(fill = "none")
   ##
   if(make.facets){
-    p <- p + facet_wrap(i,scales="free_y")
+    p <- p + ggplot2::facet_wrap(i,scales="free_y")
   }else{
     p <- p + ggplot2::labs(title = title.name,caption = caption.name)
   }
