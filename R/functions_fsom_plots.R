@@ -233,7 +233,7 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
                                              selected = 'visit'),
                           shiny::selectInput(inputId = "drop.factor",
                                              label = "Drop:",
-                                             choices = c('V4','V6','V7','Adult'),
+                                             choices = c(NA,'V4','V6','V7','Adult'),
                                              selected = NULL),
                           shiny::selectInput(inputId = "nc",
                                              label = "Node or Cluster:",
@@ -299,7 +299,7 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       choices = as.character(unique(fsom.somnambulated$mdats$cluster[,x]))
       shiny::updateSelectInput(inputId = 'drop.factor',
                                label = "Drop:",
-                               choices = choices)
+                               choices = c(NA,choices))
     })
     ##
     row.index <- shiny::reactive({
@@ -337,9 +337,15 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       plot3 <- shiny::reactive({
         shiny::validate(shiny::need(input$nc.val,"populating cluster/node values based on 'updateSelectInput'"))
         i <- input$nc
+        if(!is.na(input$drop.factor)){
+          drop.col.var <- c(input$mdat1,input$drop.factor)
+        }else{
+          drop.col.var <- NULL
+        }
         echo.boxplot(echo.melted.mdatframe = fsom.somnambulated$mdats[[i]],
                      variable.value = input$nc.val,
-                     x.var = input$mdat1)
+                     x.var = input$mdat1,
+                     drop.col.var = drop.col.var)
       })
     }
 
