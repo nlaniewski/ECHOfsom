@@ -271,7 +271,7 @@ fsom.somnambulation <- function(fsom.rds.path,c.names=NULL){
                              nc.vals = col.maxes[c('cluster','node')],
                              heatmaps = list(p.heat = pheat(dat.mat = fsom$cluster.medians,color.type = 'sequential',border_color = NA,silent=T),
                                              pl.heat = plheat(fsom$cluster.medians),
-                                             cluster.corr.heat = pheatmap::pheatmap(cor(log2(fsom$counts$cluster[grep("HD",fsom$counts$cluster$sample,invert=T),sapply(fsom$counts$cluster,is.numeric)]+1)),
+                                             cluster.corr.heat = pheatmap::pheatmap(stats::cor(log2(fsom$counts$cluster[grep("HD",fsom$counts$cluster$sample,invert=T),sapply(fsom$counts$cluster,is.numeric)]+1)),
                                                                                     border_color=NA,silent=T
                                              )
                              ),
