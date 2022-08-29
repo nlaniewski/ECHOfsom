@@ -174,106 +174,7 @@ echo.melt <- function(fsom,counts=c('cluster','node'),drop.factor=NULL){
   return(dat.melt)
 }
 
-fsom.somnambulation <- function(fsom.rds.path){
-  ##load fsom.rds
-  if(!exists('fsom')){
-    message(paste("loading fsom.rds:",fsom.rds.path))
-    fsom <- readRDS(fsom.rds.path)
-  }else{
-    message("fsom is already defined (in environment)")
-  }
-  ##
-  if(length(fsom$map$mapping[,1])==sum(fsom$mdat$total.events)){
-    total.events <- sum(fsom$mdat$total.events)
-  }else{
-    total.events <- sum(fsom$mdat$total.events)
-    message("length(fsom$map$mapping[,1]) DOES NOT EQUAL sum(fsom$mdat$total.events)")
-  }
-
-  ##prepare column names
-  message("c.names")
-  c.names <- echo.fsom.colnames(c.names = colnames(fsom$data))
-
-  ##prepare data.frame for plotting all events; sub-sample if too many rows to speed up plotting
-  message("dat.all")
-  if(nrow(fsom$data)>1E6){
-    message("All events > 1E6; sub-sampling...")
-    set.seed(20040501)
-    sample.val <- sample(1:nrow(fsom$data),1E6)
-    dat.all <- cbind(fsom$data[sample.val,],
-                     cluster = as.numeric(fsom$metaclustering[fsom$map$mapping[,1]][sample.val]),
-                     node = fsom$map$mapping[,1][sample.val])[,c.names]
-  }else{
-    dat.all <- cbind(fsom$data,
-                     cluster = as.numeric(fsom$metaclustering[fsom$map$mapping[,1]]),
-                     node = fsom$map$mapping[,1][sample.val])[,c.names]
-  }
-
-  ##prepare cluster matrices
-  message("cluster.mats")
-  cluster.mats <- sapply(levels(fsom$metaclustering),function(i){
-    c.index <- which(fsom$metaclustering[fsom$map$mapping[,1]]==i)
-    if(length(c.index)>2E5){
-      set.seed(20040501)
-      sample.val <- sample(c.index,2E5)
-      dat <- cbind(fsom$data[sample.val,],cluster = as.numeric(i),node = fsom$map$mapping[,1][sample.val])[,c.names]
-    }else{
-      dat <- cbind(fsom$data[c.index,],cluster = as.numeric(i),node = fsom$map$mapping[,1][c.index])[,c.names]
-    }
-    return(dat)
-  },simplify = F)
-
-  ##pre-calculate per-column x,y limits
-  ##decimal value ceiling for setting x,y upper limits
-  message("xy.upper.lim")
-  col.maxes.all <- apply(dat.all,2,max)
-  col.maxes.mats <- apply(sapply(cluster.mats,function(i) apply(i,2,max)),1,max)
-  col.maxes <- apply(rbind(col.maxes.all,col.maxes.mats),2,max)
-  #
-  ceiling_dec <- function(x, level=1){round(x + 5*10^(-level-1), level)}
-  #
-  xy.upper.lim <- c(sapply(col.maxes[!names(col.maxes) %in% c('cluster','node')],ceiling_dec)+0.05,
-                    col.maxes[c('cluster','node')]+1
-  )
-
-  message("making list")
-  gc()
-  fsom.somnambulate <- list(total.events = total.events,
-                            dat.all = dat.all,
-                            cluster.mats = cluster.mats,
-                            xy.upper.lims = xy.upper.lim,
-                            mdats = list(cluster = echo.melt(fsom,counts = 'cluster'),
-                                         node = echo.melt(fsom,counts = 'node')
-                            ),
-                            nc.vals = col.maxes[c('cluster','node')],
-                            heatmaps = list(p.heat = pheat(dat.mat = fsom$cluster.medians,color.type = 'sequential',border_color = NA,silent=T),
-                                            pl.heat = plheat(fsom$cluster.medians),
-                                            cluster.corr.heat = pheatmap::pheatmap(cor(log2(fsom$counts$cluster[grep("HD",fsom$counts$cluster$sample,invert=T),sapply(fsom$counts$cluster,is.numeric)]+1)),
-                                                                                   border_color=NA,silent=T
-                                            )
-                            ),
-                            metaclustering = fsom$metaclustering,
-                            cluster.titles = sapply(levels(fsom$metaclustering),function(i){
-                              nodes.in.cluster <- which(fsom$metaclustering==as.numeric(i))
-                              if(length(nodes.in.cluster)>10){
-                                title.sub <- paste0(paste0("(",paste(nodes.in.cluster[1:10],collapse = " "),"...)"),"(",length(nodes.in.cluster)," total",")")
-                              }else{
-                                title.sub <- paste0("(",paste(nodes.in.cluster,collapse = " "),")")
-                              }
-                            }),
-                            node.titles = stats::setNames(
-                              sapply(as.numeric(fsom$metaclustering),function(i){
-                                title.sub <- paste0("(",i,")")
-                              }),
-                              nm = seq(length(fsom$metaclustering))
-                            )
-  )
-  class(fsom.somnambulate) <- "FlowSOM Somnambulated"
-
-  return(fsom.somnambulate)
-}
-
-fsom.somnambulation.mod <- function(fsom.rds.path,c.names=NULL){
+fsom.somnambulation <- function(fsom.rds.path,c.names=NULL){
   ##load fsom.rds
   if(!exists('fsom')){
     message(paste("loading fsom.rds:",fsom.rds.path))
@@ -369,7 +270,10 @@ fsom.somnambulation.mod <- function(fsom.rds.path,c.names=NULL){
                              mdats = mdats,
                              nc.vals = col.maxes[c('cluster','node')],
                              heatmaps = list(p.heat = pheat(dat.mat = fsom$cluster.medians,color.type = 'sequential',border_color = NA,silent=T),
-                                             pl.heat = plheat(fsom$cluster.medians)
+                                             pl.heat = plheat(fsom$cluster.medians),
+                                             cluster.corr.heat = pheatmap::pheatmap(cor(log2(fsom$counts$cluster[grep("HD",fsom$counts$cluster$sample,invert=T),sapply(fsom$counts$cluster,is.numeric)]+1)),
+                                                                                    border_color=NA,silent=T
+                                             )
                              ),
                              metaclustering = fsom$metaclustering,
                              cluster.titles = sapply(levels(fsom$metaclustering),function(i){
