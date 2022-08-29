@@ -279,6 +279,12 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
                       shiny::fillPage(
                         shiny::plotOutput("pheat", height = "80vh")
                       )
+      ),
+
+      shiny::tabPanel("Cluster Correlations",
+                      shiny::fillPage(
+                        shiny::plotOutput("cluster.corr.heat", height = "80vh")
+                      )
       )
     )
   )
@@ -372,6 +378,8 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
     output$boxplots_faceted <- shiny::renderPlot({
       boxplots.faceted()
     })
+
+    output$cluster.corr.heat <- shiny::renderPlot({grid::grid.draw(fsom.somnambulated$heatmaps$cluster.corr.heat$gtable)})
 
     ##plotly heatmap click data
     clicks <- shiny::reactiveValues(dat = data.frame(marker1 = NA, marker2 = NA))
