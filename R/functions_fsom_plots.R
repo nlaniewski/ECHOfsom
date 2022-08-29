@@ -282,8 +282,24 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       ),
 
       shiny::tabPanel("Cluster Correlations",
-                      shiny::fillPage(
-                        shiny::plotOutput("cluster.corr.heat", height = "80vh")
+                      shiny::sidebarLayout(
+                        shiny::sidebarPanel(
+                          #
+                          shiny::radioButtons(inputId = "reorder_corr",
+                                             label = "Reorder facets?",
+                                             choices = c("yes",
+                                                         "no"),
+                                             selected = "no"),
+                          #
+                          width = 1,
+                          id = 'sidebar_corr'
+                        ),
+
+                        shiny::mainPanel(
+                          shiny::fillPage(
+                            shiny::plotOutput("cluster.corr.heat", height = "80vh")
+                          )
+                        )
                       )
       )
     )
