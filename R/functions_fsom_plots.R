@@ -270,8 +270,25 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       ),
 
       shiny::tabPanel("Boxplots",
-                      shiny::fillPage(
-                        shiny::plotOutput("boxplots_faceted", height = "80vh")
+                      shiny::sidebarLayout(
+                        shiny::sidebarPanel(
+                          #
+                          shiny::radioButtons(inputId = "reorder_boxplots",
+                                              label = "Reorder facets?",
+                                              choices = c("yes",
+                                                          "no"),
+                                              selected = "no"),
+                          #
+                          width = 1,
+                          id = 'sidebar_boxplots'
+                        ),
+
+                        shiny::mainPanel(
+                          shiny::fillPage(
+                            shiny::plotOutput("boxplots_faceted", height = "80vh")
+                          ),
+                          width = 11
+                        )
                       )
       ),
 
@@ -282,24 +299,8 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
       ),
 
       shiny::tabPanel("Cluster Correlations",
-                      shiny::sidebarLayout(
-                        shiny::sidebarPanel(
-                          #
-                          shiny::radioButtons(inputId = "reorder_corr",
-                                             label = "Reorder facets?",
-                                             choices = c("yes",
-                                                         "no"),
-                                             selected = "no"),
-                          #
-                          width = 1,
-                          id = 'sidebar_corr'
-                        ),
-
-                        shiny::mainPanel(
-                          shiny::fillPage(
-                            shiny::plotOutput("cluster.corr.heat", height = "80vh")
-                          )
-                        )
+                      shiny::fillPage(
+                        shiny::plotOutput("cluster.corr.heat", height = "80vh")
                       )
       )
     )
@@ -373,7 +374,13 @@ somnambulate <- function(fsom.somnambulated.rds.path=NULL,fsom.somnambulated=NUL
 
     boxplots.faceted <- shiny::reactive({
       i <- input$nc
-      if(i=='cluster'){
+      reorder.facets <- input$reorder_boxplots
+      if(i=='cluster'&reorder.facets=="no"){
+        echo.boxplot(echo.melted.mdatframe = fsom.somnambulated$mdats[[i]],
+                     x.var = input$mdat1,
+                     make.facets = T)
+      }else if(i=='cluster'&reorder.facets=="yes"){
+        fsom.somnambulated$mdats[[i]][,i] <- factor(fsom.somnambulated$mdats[[i]][,i],levels=fsom.somnambulated$heatmaps$cluster.corr.heat$tree_col$order)
         echo.boxplot(echo.melted.mdatframe = fsom.somnambulated$mdats[[i]],
                      x.var = input$mdat1,
                      make.facets = T)
