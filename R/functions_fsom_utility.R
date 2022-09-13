@@ -263,6 +263,14 @@ fsom.somnambulation <- function(fsom.rds.path,c.names=NULL){
 
   message("making list")
   gc()
+  if(!is.null(fsom$counts$cluster)){
+    cluster.corr.heat <- pheatmap::pheatmap(stats::cor(log2(fsom$counts$cluster[grep("HD",fsom$counts$cluster$sample,invert=T),sapply(fsom$counts$cluster,is.numeric)]+1)),
+                                            border_color=NA,
+                                            silent=T
+    )
+  }else{
+    cluster.corr.heat <- NULL
+  }
   fsom.somnambulated <- list(total.events = total.events,
                              dat.all = dat.all,
                              cluster.mats = cluster.mats,
@@ -271,9 +279,7 @@ fsom.somnambulation <- function(fsom.rds.path,c.names=NULL){
                              nc.vals = col.maxes[c('cluster','node')],
                              heatmaps = list(p.heat = pheat(dat.mat = fsom$cluster.medians,color.type = 'sequential',border_color = NA,silent=T),
                                              pl.heat = plheat(fsom$cluster.medians),
-                                             cluster.corr.heat = pheatmap::pheatmap(stats::cor(log2(fsom$counts$cluster[grep("HD",fsom$counts$cluster$sample,invert=T),sapply(fsom$counts$cluster,is.numeric)]+1)),
-                                                                                    border_color=NA,silent=T
-                                             )
+                                             cluster.corr.heat = cluster.corr.heat
                              ),
                              metaclustering = fsom$metaclustering,
                              cluster.titles = sapply(levels(fsom$metaclustering),function(i){
