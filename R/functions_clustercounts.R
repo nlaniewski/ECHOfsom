@@ -47,3 +47,41 @@ cluster.counts.long.proportion.1E6 <- function(cluster.counts.directory="./data_
     return(cluster.counts.long)
   }
 }
+
+cluster.counts.long.generate.frames <- function(cluster.counts.long.filepath){
+  #value column: count = raw cluster counts per-sample/per cell.type
+  #value column: proportion = count converted to proportion (sum to 1) of cluster per-sample/per cell.type
+  #value column: 1E6 = raw cluster counts per-sample/per cell.type normalized to count per-million
+  clusters.long <- utils::read.csv(cluster.counts.long.filepath,check.names = F,
+                                   colClasses = list(
+                                     "subject"="factor",
+                                     "condition"="factor",
+                                     "cell.type"="factor",
+                                     "batch.date"="factor"
+                                   )
+  )
+  clusters.long$visit <- factor(clusters.long$visit,levels = c(paste0("V",c(4,6,7)),"Adult"))
+  clusters.long$batch <- factor(clusters.long$batch,levels=seq(max(clusters.long$batch)))
+  clusters.long$cluster <- factor(clusters.long$cluster,levels=seq(max(clusters.long$cluster)))
+  ##
+  clusters.long.split <- split(clusters.long,clusters.long$cell.type)
+  clusters.long.split <- lapply(clusters.long.split,droplevels)
+  ##
+  clusters.wide.split <- lapply(clusters.long.split,function(i){
+    left.side <- names(which(!sapply(i,is.numeric)));left.side <- left.side[!left.side %in% 'cluster']
+    left.side <- paste(left.side,collapse = "+")
+
+    value.vars <- names(which(sapply(i,is.numeric)))
+
+    right.side <- 'cluster'
+
+    dcast.formula <- stats::as.formula(paste(left.side,"~",right.side))
+
+    sapply(value.vars,function(v){reshape2::dcast(i,formula = dcast.formula,value.var = v)},simplify = F)
+
+    #dat <- reshape2::dcast(i,formula = dcast.formula,value.var = "1E6")
+  })
+  return(list(split = clusters.long.split,
+              wide = clusters.wide.split)
+  )
+}
