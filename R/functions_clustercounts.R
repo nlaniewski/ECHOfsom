@@ -5,7 +5,7 @@ cluster.counts.long.proportion.1E6 <- function(cluster.counts.directory="./data_
   if(any(table(cell.types)>1)){
     stop(paste("Cluster count files conflict: more than one instance of",names(which(table(cell.types)>1))))
   }
-  cluster.counts <- sapply(cluster.count.files,read.csv,check.names = F)
+  cluster.counts <- sapply(cluster.count.files,utils::read.csv,check.names = F)
   ##
   cluster.counts.list <- lapply(cluster.counts,function(cluster.counts.frame){
     cluster.cols <- grep("[0-9]+",colnames(cluster.counts.frame))
@@ -40,9 +40,9 @@ cluster.counts.long.proportion.1E6 <- function(cluster.counts.directory="./data_
   if(write.csv.to.file){
     out.name <- paste("ECHO",sprintf("%03d",min(cluster.counts.long$batch)),"thru",sprintf("%03d",max(cluster.counts.long$batch)),sep = "_")
     out.name <- paste0(paste(out.name,"cluster_counts_long",Sys.Date(),sep = "_"),".csv")
-    write.csv(cluster.counts.long,
-              file = file.path(cluster.counts.directory,out.name),
-              row.names = F)
+    utils::write.csv(cluster.counts.long,
+                     file = file.path(cluster.counts.directory,out.name),
+                     row.names = F)
   }else{
     return(cluster.counts.long)
   }
