@@ -1,6 +1,6 @@
 cluster.counts.long.proportion.1E6 <- function(cluster.counts.directory="./data_results/cluster_counts/",write.csv.to.file=T){
 
-  cluster.count.files <- list.files(cluster.counts.directory,full.names = T,pattern = "cluster_counts_*.*csv")
+  cluster.count.files <- list.files("./data_results/cluster_counts/",full.names = T,pattern = "[A-Za-z]+[0-9]+\\+|[A-Za-z]+\\+|PBMC*.*csv")
   cell.types <- stringr::str_extract(cluster.count.files,"[A-Za-z]+[0-9]+\\+|[A-Za-z]+\\+|PBMC")
   if(any(table(cell.types)>1)){
     stop(paste("Cluster count files conflict: more than one instance of",names(which(table(cell.types)>1))))
