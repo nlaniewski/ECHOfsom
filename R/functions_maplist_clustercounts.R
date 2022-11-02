@@ -75,7 +75,7 @@ counts.out.filename <- function(counts.frame,count.type){
 }
 
 maplist.to.counts <- function(maplist.rds.path,write.counts=TRUE){
-  counts <- counts.from.maplist(maplist.rds.path,count.type = count.type)
+  counts <- counts.from.maplist(maplist.rds.path)
   counts <- counts.add.mdat(counts)
   counts <- counts.colnames.ordering(counts)
   if(write.counts){
