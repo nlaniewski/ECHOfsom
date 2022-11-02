@@ -3,7 +3,7 @@ counts.from.maplist <- function(maplist.rds.path){
   #read in map list
   map.list <- readRDS(maplist.rds.path)
   ##table/counts
-  count.table <- lapply(count.list,table)
+  count.table <- lapply(map.list,table)
   ##rbind;data.frame
   counts <- as.data.frame(do.call(rbind,count.table))
   ##
