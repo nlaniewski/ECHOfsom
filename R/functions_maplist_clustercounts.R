@@ -1,9 +1,7 @@
 
-counts.from.maplist <- function(maplist.rds.path,count.type=c('cluster','node')){
+counts.from.maplist <- function(maplist.rds.path){
   #read in map list
   map.list <- readRDS(maplist.rds.path)
-  ##list contains both node and cluster indices; retrieve based on 'count.type' argument
-  count.list <- lapply(map.list,'[[',count.type)
   ##table/counts
   count.table <- lapply(count.list,table)
   ##rbind;data.frame
@@ -76,11 +74,16 @@ counts.out.filename <- function(counts.frame,count.type){
   return(out.filename)
 }
 
-maplist.to.counts <- function(maplist.rds.path,count.type=c('cluster','node'),write.counts=TRUE){
+maplist.to.counts <- function(maplist.rds.path,write.counts=TRUE){
   counts <- counts.from.maplist(maplist.rds.path,count.type = count.type)
   counts <- counts.add.mdat(counts)
   counts <- counts.colnames.ordering(counts)
   if(write.counts){
+    if(grepl('cluster',maplist.rds.path)){
+      count.type <- 'cluster'
+    }else if(grepl('node',maplist.rds.path)){
+      count.type <- 'node'
+    }
     out.filename <- counts.out.filename(counts,count.type = count.type)
     f.path <- file.path("./data_results/cluster_counts/")
     if(count.type=='node'){
