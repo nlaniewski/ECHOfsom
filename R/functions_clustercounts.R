@@ -13,7 +13,7 @@ cluster.counts.long.from.path <- function(cluster.counts.path){
   ##
   dat.melt <- list(count = cluster.counts.frame,
                    proportion = dat.prop,
-                   per1million= dat.dat.per1million)
+                   per1million= dat.per1million)
   dat.melt <- lapply(names(dat.melt),function(i){
     reshape2::melt(dat.melt[[i]],
                    measure.vars = grep("[0-9]+",colnames(dat.melt[[i]]),value = T),
