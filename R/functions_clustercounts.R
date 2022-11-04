@@ -1,3 +1,29 @@
+cluster.counts.long.from.path <- function(cluster.counts.path){
+  cluster.counts.frame <- utils::read.csv(cluster.counts.path,check.names = F,stringsAsFactors = T)
+  if('batch'%in%colnames(cluster.counts.frame)){
+    cluster.counts.frame$batch <- factor(cluster.counts.frame$batch)
+  }
+  cluster.cols <- grep("[0-9]+",colnames(cluster.counts.frame))
+  ##
+  dat.prop <- dat.per1million <- cluster.counts.frame
+  ##
+  dat.per1million[,cluster.cols] <-dat.per1million[,cluster.cols]*(1E6/rowSums(dat.per1million[,cluster.cols]))
+  ##
+  dat.prop[,cluster.cols] <- prop.table(as.matrix(dat.prop[,cluster.cols]),1)*100
+  ##
+  dat.melt <- list(count = cluster.counts.frame,
+                   proportion = dat.prop,
+                   per1million= dat.dat.per1million)
+  dat.melt <- lapply(names(dat.melt),function(i){
+    reshape2::melt(dat.melt[[i]],
+                   measure.vars = grep("[0-9]+",colnames(dat.melt[[i]]),value = T),
+                   value.name = i,
+                   variable.name = 'cluster'
+    )
+  })
+  return(suppressMessages(plyr::join_all(dat.melt)))
+}
+
 cluster.counts.long.proportion.1E6 <- function(cluster.counts.directory="./data_results/cluster_counts/",write.csv.to.file=T){
 
   cluster.count.files <- list.files("./data_results/cluster_counts/",full.names = T,pattern = "[A-Za-z]+[0-9]+\\+|[A-Za-z]+\\+|PBMC*.*csv")
