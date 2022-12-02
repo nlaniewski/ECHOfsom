@@ -230,15 +230,18 @@ fsom.somnambulation <- function(fsom.rds.path,c.names=NULL){
   message("cluster.mats")
   cluster.mats <- sapply(levels(fsom$metaclustering),function(i){
     c.index <- which(fsom$metaclustering[fsom$map$mapping[,1]]==i)
-    if(length(c.index)>2E5){
-      set.seed(20040501)
-      sample.val <- sample(c.index,2E5)
-      dat <- cbind(fsom$data[sample.val,],cluster = as.numeric(i),node = fsom$map$mapping[,1][sample.val])[,c.names]
-    }else{
-      dat <- cbind(fsom$data[c.index,],cluster = as.numeric(i),node = fsom$map$mapping[,1][c.index])[,c.names]
+    if(length(c.index)!=0){
+      if(length(c.index)>2E5){
+        set.seed(20040501)
+        sample.val <- sample(c.index,2E5)
+        dat <- cbind(fsom$data[sample.val,],cluster = as.numeric(i),node = fsom$map$mapping[,1][sample.val])[,c.names]
+      }else{
+        dat <- cbind(fsom$data[c.index,],cluster = as.numeric(i),node = fsom$map$mapping[,1][c.index])[,c.names]
+      }
+      return(dat)
     }
-    return(dat)
   },simplify = F)
+  cluster.mats<-cluster.mats[which(!sapply(cluster.mats,is.null))]
 
   ##pre-calculate per-column x,y limits
   ##decimal value ceiling for setting x,y upper limits and lower limits
